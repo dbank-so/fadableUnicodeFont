@@ -15,6 +15,7 @@ import org.newdawn.slick.font.effects.ColorEffect;
 
 public class TextFadeTest extends BasicGame {
     
+    private final int Y_OFFSET = 50;
     private final org.newdawn.slick.Color bgColor =  new org.newdawn.slick.Color(126, 166, 240);
     
     private UnicodeFont unicodeFont;
@@ -40,9 +41,18 @@ public class TextFadeTest extends BasicGame {
 
     @Override
     public void render(GameContainer gc, Graphics g) throws SlickException {
-
+        
         String str = "bernhardkiv: hello world!";
-        unicodeFont.drawString(10, 0, str, Color.white, 0, 10);
+        int y = 0;
+        unicodeFont.drawString(10, y, str);
+        unicodeFont.drawString(10, y+=Y_OFFSET, str, Color.white, 0, 22);
+        unicodeFont.drawString(10, y+=Y_OFFSET, str, 22, 0f);
+        unicodeFont.drawString(10, y+=Y_OFFSET, str, 22, 0.10f);
+        unicodeFont.drawString(10, y+=Y_OFFSET, str, 22, 0.25f);
+        unicodeFont.drawString(10, y+=Y_OFFSET, str, 22, 0.50f);
+        unicodeFont.drawString(10, y+=Y_OFFSET, str, 22, 0.75f);
+        unicodeFont.drawString(10, y+=Y_OFFSET, str, 22, 0.90f);
+        unicodeFont.drawString(10, y+=Y_OFFSET, str, 22, 1.0f);
 
     }
 
@@ -57,6 +67,5 @@ public class TextFadeTest extends BasicGame {
             Logger.getLogger(TextFadeTest.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-    
     
 }

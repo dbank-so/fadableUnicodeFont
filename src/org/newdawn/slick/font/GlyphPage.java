@@ -89,6 +89,14 @@ public class GlyphPage {
 	/** The list of glyphs on this page */
 	private final List pageGlyphs = new ArrayList(32);
 
+	protected GlyphPage(UnicodeFont unicodeFont, int pageWidth, int pageHeight, Image image) throws SlickException {
+	     this.unicodeFont = unicodeFont;
+	     this.pageWidth = pageWidth;
+	     this.pageHeight = pageHeight;
+
+	     pageImage = image;
+	 }
+		
 	/**
 	 * Create a new page of glyphs
 	 * 
@@ -98,11 +106,7 @@ public class GlyphPage {
 	 * @throws SlickException if the backing texture could not be created.
 	 */
 	public GlyphPage(UnicodeFont unicodeFont, int pageWidth, int pageHeight) throws SlickException {
-		this.unicodeFont = unicodeFont;
-		this.pageWidth = pageWidth;
-		this.pageHeight = pageHeight;
-
-		pageImage = new Image(pageWidth, pageHeight);
+		this(unicodeFont, pageWidth, pageHeight, new Image(pageWidth, pageHeight));
 	}
 
 	/**

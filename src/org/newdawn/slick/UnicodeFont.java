@@ -27,6 +27,9 @@ import org.newdawn.slick.opengl.renderer.Renderer;
 import org.newdawn.slick.opengl.renderer.SGL;
 import org.newdawn.slick.util.ResourceLoader;
 
+import dbankso.textfade.FadableGlyphPage;
+import dbankso.textfade.FadableImage;
+
 /**
  * A Slick bitmap font that can display unicode glyphs from a TrueTypeFont.
  * 
@@ -371,7 +374,7 @@ public class UnicodeFont implements org.newdawn.slick.Font {
 
 		// Add to new pages.
 		while (!queuedGlyphs.isEmpty()) {
-			GlyphPage glyphPage = new GlyphPage(this, glyphPageWidth, glyphPageHeight);
+			GlyphPage glyphPage = new FadableGlyphPage(this, glyphPageWidth, glyphPageHeight);
 			glyphPages.add(glyphPage);
 			maxGlyphsToLoad -= glyphPage.loadGlyphs(queuedGlyphs, maxGlyphsToLoad);
 			if (maxGlyphsToLoad == 0) return true;
@@ -426,7 +429,7 @@ public class UnicodeFont implements org.newdawn.slick.Font {
 	 * @param endIndex The end index into the string to render to
 	 * @return The reference to the display list that was drawn and potentiall ygenerated
 	 */
-	public DisplayList drawDisplayList (float x, float y, String text, Color color, int startIndex, int endIndex) {
+	public DisplayList drawDisplayList (float x, float y, String text, Color color, int startIndex, int endIndex, float fadePercentWidth) {
 		if (text == null) throw new IllegalArgumentException("text cannot be null.");
 		if (text.length() == 0) return EMPTY_DISPLAY_LIST;
 		if (color == null) throw new IllegalArgumentException("color cannot be null.");
@@ -452,7 +455,7 @@ public class UnicodeFont implements org.newdawn.slick.Font {
 			// Try to use a display list compiled for this text.
 			displayList = (DisplayList)displayLists.get(displayListKey);
 			if (displayList != null) {
-				if (displayList.invalid)
+				if (displayList.invalid || !displayList.isFadableValid(endIndex, fadePercentWidth))
 					displayList.invalid = false;
 				else {
 					GL.glTranslatef(x, y, 0);
@@ -513,7 +516,10 @@ public class UnicodeFont implements org.newdawn.slick.Font {
 					GL.glBegin(SGL.GL_QUADS);
 					lastBind = texture;
 				}
-				image.drawEmbedded(bounds.x + extraX, bounds.y + extraY, image.getWidth(), image.getHeight());
+				if( (charIndex == endIndex-1) && (fadePercentWidth >= 0f) && (fadePercentWidth <= 1.0f) )
+				    ((FadableImage) image).drawEmbeddedFaded(bounds.x + extraX, bounds.y + extraY, image.getWidth(), image.getHeight(), color, fadePercentWidth);
+				else
+				    image.drawEmbedded(bounds.x + extraX, bounds.y + extraY, image.getWidth(), image.getHeight());
 			}
 
 			if (glyphIndex >= 0) extraX += paddingRight + paddingLeft + paddingAdvanceX;
@@ -540,11 +546,17 @@ public class UnicodeFont implements org.newdawn.slick.Font {
 		if (displayList == null) displayList = new DisplayList();
 		displayList.width = (short)maxWidth;
 		displayList.height = (short)(lines * getLineHeight() + totalHeight);
+		displayList.lastEndIndex = endIndex;
+		displayList.lastFadePercentWidth = fadePercentWidth;
 		return displayList;
 	}
 
+	public void drawString(float x, float y, String text, int endIndex, float fadePercentWidth) {
+	    drawDisplayList(x, y, text, Color.white, 0, endIndex, fadePercentWidth);
+	}
+	
 	public void drawString (float x, float y, String text, Color color, int startIndex, int endIndex) {
-		drawDisplayList(x, y, text, color, startIndex, endIndex);
+		drawDisplayList(x, y, text, color, startIndex, endIndex, -1.0f);
 	}
 
 	public void drawString (float x, float y, String text) {
@@ -973,6 +985,13 @@ public class UnicodeFont implements org.newdawn.slick.Font {
 		public short height;
 		/** Application data stored in the list */
 		public Object userData;
+		
+		int lastEndIndex = -1;
+		float lastFadePercentWidth = -1.0f;
+		
+		boolean isFadableValid(int endIndex, float fadePercentWidth) {
+		    return (lastEndIndex == endIndex) && (lastFadePercentWidth == fadePercentWidth);
+		}
 
 		DisplayList () {
 		}
